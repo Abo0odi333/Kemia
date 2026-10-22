@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مختبر لويس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=Readex+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b2238; --blue:#0e2b45; --line:rgba(238,244,248,.28);
+  --chalk:#eef4f8; --muted:#8fb0c9; --saffron:#ffc857; --mint:#4fe0b0; --coral:#ff6b6b;
+  --display:'Reem Kufi','Readex Pro','Tajawal','Segoe UI',Tahoma,sans-serif;
+  --body:'Readex Pro','Tajawal','Segoe UI',Tahoma,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--ink);color:var(--chalk);font-family:var(--body);overflow:hidden;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+bdi{unicode-bidi:isolate}
+
+/* ---------- الصفحة الرئيسية ---------- */
+#home{padding:30px 44px;overflow:auto;background:
+  radial-gradient(900px 400px at 85% -10%,rgba(79,224,176,.10),transparent 60%),var(--ink)}
+.hero{display:flex;align-items:center;gap:30px;margin-bottom:22px;flex-wrap:wrap}
+.hero h1{font-family:var(--display);font-weight:700;font-size:68px;line-height:1.05}
+.hero p{color:var(--muted);font-size:18px;margin-top:8px;font-weight:300}
+.how{display:flex;gap:12px;margin:0 0 26px;flex-wrap:wrap}
+.how span{border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-size:15px;color:var(--chalk);font-weight:300}
+.how b{color:var(--saffron);font-weight:600;margin-inline-start:6px}
+.total{margin-inline-start:auto;color:var(--saffron);font-size:20px;font-weight:500;align-self:flex-end}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:14px;padding-bottom:20px}
+.tile{position:relative;aspect-ratio:1/1.08;border:1.5px solid var(--line);border-radius:10px;padding:10px;text-align:center;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;
+  transition:transform .15s,border-color .15s,background .15s}
+.tile:hover{transform:translateY(-3px);border-color:var(--saffron);background:rgba(255,200,87,.07)}
+.tile .no{position:absolute;top:9px;inset-inline-start:11px;font-size:13px;color:var(--muted)}
+.tile .fm{font-weight:600;font-size:36px;line-height:1}
+.tile .nm{font-size:14.5px;color:var(--chalk);font-weight:300}
+.tile .st{font-size:17px;letter-spacing:2px;color:var(--saffron);direction:ltr}
+.tile .st i{font-style:normal;color:rgba(238,244,248,.22)}
+
+/* ---------- شاشة اللعب ---------- */
+#game{padding:14px 18px;gap:12px}
+.topbar{display:flex;align-items:center;gap:12px}
+.topbar h2{font-family:var(--display);font-size:30px;font-weight:700;flex:1}
+.pill{border:1.5px solid var(--line);border-radius:999px;padding:7px 16px;font-size:15px;transition:background .15s,border-color .15s}
+.pill:hover{border-color:var(--saffron)}
+.pill.on{background:rgba(255,200,87,.14);border-color:var(--saffron)}
+.main{flex:1;display:grid;grid-template-columns:300px 1fr;gap:14px;min-height:0}
+.side{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.panel{border:1.5px solid var(--line);border-radius:12px;padding:14px}
+.panel h3{font-size:14px;font-weight:400;color:var(--muted);margin-bottom:8px}
+.formula{font-weight:600;font-size:44px;line-height:1;margin-bottom:4px}
+.fname{font-size:17px;font-weight:300}
+.sum{font-size:13.5px;color:var(--muted);margin-top:10px;direction:ltr;text-align:right;font-weight:300}
+.meter{height:10px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin:8px 0 6px}
+.meter i{display:block;height:100%;width:0;background:var(--saffron);border-radius:99px;transition:width .25s,background .25s}
+.meter.ok i{background:var(--mint)}
+.meter.over i{background:var(--coral)}
+.mtxt{display:flex;justify-content:space-between;font-size:15px}
+.mtxt b{font-weight:600}
+.tray{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chip{display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);border-radius:10px;padding:7px 9px;touch-action:none;
+  transition:border-color .15s,opacity .15s}
+.chip:hover{border-color:var(--saffron)}
+.chip.off{opacity:.3;pointer-events:none}
+.chip .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:15px;flex:none}
+.chip span{font-size:13.5px;font-weight:300;flex:1;text-align:start}
+.chip em{font-style:normal;font-size:13px;color:var(--saffron);direction:ltr}
+.ghost{position:fixed;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;display:grid;place-items:center;
+  font-weight:600;font-size:22px;pointer-events:none;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.hintbox{display:none;font-size:14.5px;line-height:1.8;font-weight:300;border-color:rgba(255,200,87,.5);background:rgba(255,200,87,.07)}
+.hintbox.on{display:block}
+
+.boardwrap{display:flex;flex-direction:column;gap:10px;min-height:0}
+#board{flex:1;width:100%;min-height:0;border-radius:14px;border:1.5px solid var(--line);touch-action:none;
+  background-color:var(--blue);
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:96px 96px,96px 96px,24px 24px,24px 24px}
+#board .bond{stroke:var(--chalk);stroke-width:4.5;stroke-linecap:round}
+#board .bondhit{stroke:transparent;stroke-width:26;stroke-linecap:round;pointer-events:none}
+#board.tool-bond .bondhit,#board.tool-delete .bondhit{pointer-events:stroke;cursor:pointer}
+#board.tool-move .atom{cursor:grab}
+#board.tool-bond .atom{cursor:crosshair}
+#board.tool-pair .atom{cursor:copy}
+#board.tool-delete .atom{cursor:not-allowed}
+#board .ring{fill:none;stroke:var(--saffron);stroke-width:2.5;stroke-dasharray:5 5;opacity:0}
+#board .atom.sel .ring{opacity:1}
+#board .atom.bad .ring{opacity:1;stroke:var(--coral);stroke-dasharray:none;animation:blink .5s 3}
+@keyframes blink{50%{opacity:.25}}
+#board .body{stroke:rgba(255,255,255,.55);stroke-width:1.5}
+#board .sym{font-family:var(--body);font-weight:600;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#board .bt{font-family:var(--body);font-weight:600;font-size:12.5px;fill:#10263c;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#board .pdot{fill:var(--saffron)}
+#board .pairhit{fill:transparent;pointer-events:none}
+#board.tool-pair .pairhit{pointer-events:all;cursor:pointer}
+#board .empty{fill:var(--muted);font-size:20px;font-weight:300;text-anchor:middle}
+#board .preview{stroke:var(--saffron);stroke-width:3;stroke-dasharray:6 6;pointer-events:none}
+
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{padding:9px 16px;font-size:15px;display:flex;align-items:center;gap:7px;border-inline-end:1.5px solid var(--line);transition:background .15s}
+.seg button:last-child{border-inline-end:0}
+.seg button:hover{background:rgba(255,255,255,.07)}
+.seg button.on{background:var(--saffron);color:#2a1f00;font-weight:500}
+.seg svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.act{margin-inline-start:auto;display:flex;gap:10px}
+.btn{border:1.5px solid var(--line);border-radius:12px;padding:9px 18px;font-size:15px;transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--saffron)}
+.btn.go{background:var(--mint);color:#052a1d;border-color:var(--mint);font-weight:600;padding:9px 26px}
+.btn.go:hover{filter:brightness(1.08)}
+#msg{min-height:26px;font-size:16px;font-weight:300;color:var(--muted)}
+#msg.bad{color:var(--coral)}
+#msg.warn{color:var(--saffron)}
+#msg.ok{color:var(--mint)}
+
+/* ---------- نافذة الفوز ---------- */
+#win{position:fixed;inset:0;background:rgba(5,15,25,.82);display:none;align-items:center;justify-content:center;z-index:80}
+#win.on{display:flex}
+#confetti{position:absolute;inset:0;pointer-events:none}
+.winbox{position:relative;max-width:480px;width:90%;border:1.5px solid var(--saffron);border-radius:16px;background:var(--ink);padding:30px;text-align:center}
+.winbox h2{font-family:var(--display);font-size:46px;font-weight:700}
+.winbox .big{font-size:20px;margin:6px 0 14px;font-weight:300}
+.winbox .stars{font-size:44px;color:var(--saffron);letter-spacing:6px;direction:ltr;margin-bottom:14px}
+.winbox .stars i{font-style:normal;color:rgba(238,244,248,.2)}
+.winbox .fact{font-size:15.5px;line-height:1.9;color:var(--muted);font-weight:300;margin-bottom:22px}
+.winbox .row{display:flex;gap:12px;justify-content:center}
+
+@media (max-width:860px){
+  .main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .side{flex-direction:row;overflow:auto}
+  .side .panel{min-width:260px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- الصفحة الرئيسية -->
+<section id="home" class="screen on">
+  <div class="hero">
+    <svg width="170" height="120" viewBox="0 0 170 120" aria-hidden="true">
+      <g stroke="#eef4f8" stroke-width="4" stroke-linecap="round">
+        <line x1="85" y1="62" x2="38" y2="95"/><line x1="85" y1="62" x2="132" y2="95"/>
+      </g>
+      <circle cx="85" cy="58" r="26" fill="#ff6b6b" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>
+      <circle cx="36" cy="97" r="16" fill="#fff" stroke="rgba(255,255,255,.55)"/>
+      <circle cx="134" cy="97" r="16" fill="#fff" stroke="rgba(255,255,255,.55)"/>
+      <text x="85" y="59" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="600" fill="#fff" font-family="Readex Pro,sans-serif">O</text>
+      <text x="36" y="98" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="600" fill="#10263c" font-family="Readex Pro,sans-serif">H</text>
+      <text x="134" y="98" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="600" fill="#10263c" font-family="Readex Pro,sans-serif">H</text>
+      <g fill="#ffc857"><circle cx="70" cy="18" r="3.6"/><circle cx="80" cy="16" r="3.6"/><circle cx="90" cy="16" r="3.6"/><circle cx="100" cy="18" r="3.6"/></g>
+    </svg>
+    <div>
+      <h1>مختبر لويس</h1>
+      <p>ابنِ الجزيئات ذرةً ذرة، وأتمّم الثمانيات.</p>
+    </div>
+    <div class="total" id="total"></div>
+  </div>
+  <div class="how">
+    <span><b>١</b>اسحب الذرات إلى اللوحة</span>
+    <span><b>٢</b>صِل بينها بروابط أحادية أو ثنائية أو ثلاثية</span>
+    <span><b>٣</b>أضف الأزواج الحرة حتى تكتمل الثمانية</span>
+  </div>
+  <div class="tiles" id="tiles"></div>
+</section>
+
+<!-- شاشة اللعب -->
+<section id="game" class="screen">
+  <div class="topbar">
+    <button class="pill" id="back">القائمة</button>
+    <h2 id="gtitle"></h2>
+    <button class="pill" id="cntBtn" title="إظهار عدّاد الإلكترونات فوق كل ذرة">العدّاد</button>
+    <button class="pill" id="sndBtn">الصوت</button>
+  </div>
+  <div class="main">
+    <aside class="side">
+      <div class="panel">
+        <div class="formula" id="gform"></div>
+        <div class="fname" id="gname"></div>
+        <div class="sum" id="gsum"></div>
+      </div>
+      <div class="panel">
+        <h3>الإلكترونات المستخدمة</h3>
+        <div class="meter" id="meter"><i></i></div>
+        <div class="mtxt"><span>على اللوحة</span><b id="mtxt"></b></div>
+      </div>
+      <div class="panel">
+        <h3>صندوق الذرات — اسحب الذرة إلى اللوحة</h3>
+        <div class="tray" id="tray"></div>
+      </div>
+      <div class="panel hintbox" id="hintbox"></div>
+    </aside>
+    <div class="boardwrap">
+      <svg id="board" class="tool-move" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="bar">
+        <div class="seg" id="tools">
+          <button data-tool="move" class="on"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>تحريك</button>
+          <button data-tool="bond"><svg viewBox="0 0 24 24"><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><path d="M7 17L17 7"/></svg>رابطة</button>
+          <button data-tool="pair"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="2.4" fill="currentColor"/><circle cx="16" cy="12" r="2.4" fill="currentColor"/></svg>زوج حر</button>
+          <button data-tool="delete"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg>حذف</button>
+        </div>
+        <div class="act">
+          <button class="btn" id="hintBtn">تلميح</button>
+          <button class="btn" id="resetBtn">ابدأ من جديد</button>
+          <button class="btn go" id="checkBtn">تحقّق</button>
+        </div>
+      </div>
+      <div id="msg" role="status"></div>
+    </div>
+  </div>
+</section>
+
+<!-- نافذة الفوز -->
+<div id="win">
+  <canvas id="confetti"></canvas>
+  <div class="winbox">
+    <h2>أحسنت!</h2>
+    <div class="big" id="winTxt"></div>
+    <div class="stars" id="winStars"></div>
+    <div class="fact" id="winFact"></div>
+    <div class="row">
+      <button class="btn" id="winMenu">القائمة</button>
+      <button class="btn go" id="winNext">المستوى التالي</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ البيانات ============ */
+const EL = {
+  H: {v:1, cap:1, name:'هيدروجين', c1:'#ffffff', c2:'#c5d0da', t:'#10263c', r:25},
+  C: {v:4, cap:4, name:'كربون',    c1:'#a9b6c3', c2:'#4b5967', t:'#ffffff', r:31},
+  N: {v:5, cap:3, name:'نيتروجين', c1:'#9cc0ff', c2:'#3b64d6', t:'#ffffff', r:31},
+  O: {v:6, cap:2, name:'أكسجين',   c1:'#ff9f90', c2:'#e5374a', t:'#ffffff', r:31},
+  Cl:{v:7, cap:1, name:'كلور',     c1:'#98f2bb', c2:'#1fa760', t:'#06311b', r:33},
+  S: {v:6, cap:2, name:'كبريت',    c1:'#fff394', c2:'#d9a912', t:'#3a2c00', r:33},
+  P: {v:5, cap:3, name:'فسفور',    c1:'#ffc98a', c2:'#e5701a', t:'#3b1c00', r:33}
+};
+
+const LEVELS = [
+  {f:'H₂',   n:'الهيدروجين',            atoms:['H','H'],                       bonds:[[0,1,1]],
+   hint:'يكتفي الهيدروجين بإلكترونين فقط (قاعدة الثنائية). تشارك الذرتان زوجًا واحدًا ولا يبقى لهما أزواج حرة.',
+   fact:'الهيدروجين استثناء: يكتمل غلافه بإلكترونين لا بثمانية.'},
+  {f:'HCl',  n:'كلوريد الهيدروجين',     atoms:['H','Cl'],                      bonds:[[0,1,1]],
+   hint:'رابطة واحدة تعطي الهيدروجين إلكترونيه. يحتاج الكلور بعدها إلى ثلاثة أزواج حرة ليكمل ثمانيته.',
+   fact:'يبقى للكلور ثلاثة أزواج حرة حول ذرته.'},
+  {f:'H₂O',  n:'الماء',                 atoms:['O','H','H'],                   bonds:[[0,1,1],[0,2,1]],
+   hint:'الأكسجين هو الذرة المركزية، وكل هيدروجين يرتبط به برابطة واحدة. كم زوجًا حرًّا يحتاج الأكسجين؟',
+   fact:'للأكسجين زوجان حران، ولهذا يأخذ جزيء الماء شكلًا منحنيًا.'},
+  {f:'NH₃',  n:'الأمونيا',              atoms:['N','H','H','H'],               bonds:[[0,1,1],[0,2,1],[0,3,1]],
+   hint:'النيتروجين في المركز ويرتبط بثلاث ذرات هيدروجين. يبقى له زوج حر واحد.',
+   fact:'الزوج الحر على النيتروجين هو ما يجعل الأمونيا قاعدة.'},
+  {f:'CH₄',  n:'الميثان',               atoms:['C','H','H','H','H'],           bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]],
+   hint:'الكربون يكوّن أربع روابط أحادية مع أربع ذرات هيدروجين، ولا يحتاج إلى أزواج حرة.',
+   fact:'يكوّن الكربون أربع روابط، لذلك هو أساس الكيمياء العضوية.'},
+  {f:'H₂S',  n:'كبريتيد الهيدروجين',    atoms:['S','H','H'],                   bonds:[[0,1,1],[0,2,1]],
+   hint:'يشبه الماء في بنائه: الكبريت في المركز وله زوجان حران.',
+   fact:'الكبريت يقع تحت الأكسجين في الجدول الدوري، فتتشابه تراكيبهما.'},
+  {f:'O₂',   n:'الأكسجين',              atoms:['O','O'],                       bonds:[[0,1,2]],
+   hint:'كل أكسجين يحتاج رابطتين. جرّب رابطة ثنائية بين الذرتين ثم أضف زوجين حرين على كل ذرة.',
+   fact:'الرابطة الثنائية هي التي تحقق الثمانية للأكسجينين معًا.'},
+  {f:'CO₂',  n:'ثاني أكسيد الكربون',    atoms:['C','O','O'],                   bonds:[[0,1,2],[0,2,2]],
+   hint:'الكربون يحتاج أربع روابط، وكل أكسجين يحتاج رابطتين: اجعل بين الكربون وكل أكسجين رابطة ثنائية.',
+   fact:'بسبب الرابطتين الثنائيتين يكون الجزيء خطيًا.'},
+  {f:'N₂',   n:'النيتروجين',            atoms:['N','N'],                       bonds:[[0,1,3]],
+   hint:'كل نيتروجين يحتاج ثلاث روابط، فاجعل بين الذرتين رابطة ثلاثية، ثم أضف زوجًا حرًّا واحدًا على كل ذرة.',
+   fact:'الرابطة الثلاثية في النيتروجين من أقوى الروابط، ولهذا يصعب تفاعل غاز النيتروجين.'},
+  {f:'HCN',  n:'سيانيد الهيدروجين',     atoms:['H','C','N'],                   bonds:[[0,1,1],[1,2,3]],
+   hint:'الترتيب: H – C ≡ N. الكربون في الوسط، له رابطة أحادية مع الهيدروجين وثلاثية مع النيتروجين.',
+   fact:'الكربون هنا بلا أزواج حرة، والنيتروجين له زوج حر واحد.'},
+  {f:'C₂H₄', n:'الإيثين',               atoms:['C','C','H','H','H','H'],       bonds:[[0,1,2],[0,2,1],[0,3,1],[1,4,1],[1,5,1]],
+   hint:'بين الكربونين رابطة ثنائية، ويحمل كل كربون ذرتي هيدروجين.',
+   fact:'الإيثين (الإيثيلين) هرمون نباتي يسرّع نضج الفاكهة.'},
+  {f:'C₂H₂', n:'الإيثاين',              atoms:['C','C','H','H'],               bonds:[[0,1,3],[0,2,1],[1,3,1]],
+   hint:'الترتيب: H – C ≡ C – H. بين الكربونين رابطة ثلاثية.',
+   fact:'الإيثاين (الأسيتيلين) يُستخدم في لحام المعادن لحرارة لهبه العالية.'},
+  {f:'H₂O₂', n:'فوق أكسيد الهيدروجين',  atoms:['O','O','H','H'],               bonds:[[0,1,1],[0,2,1],[1,3,1]],
+   hint:'الترتيب: H – O – O – H. رابطة أحادية بين الأكسجينين، ولكل أكسجين زوجان حران.',
+   fact:'يُستعمل محلوله المخفف كمطهّر.'},
+  {f:'CH₂O', n:'الفورمالديهايد',        atoms:['C','O','H','H'],               bonds:[[0,1,2],[0,2,1],[0,3,1]],
+   hint:'الكربون في المركز: رابطة ثنائية مع الأكسجين ورابطة أحادية مع كل هيدروجين.',
+   fact:'الكربون يكمل أربع روابط: ثنائية واثنتان أحاديتان.'},
+  {f:'CH₃OH',n:'الميثانول',             atoms:['C','O','H','H','H','H'],       bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1],[1,5,1]],
+   hint:'الكربون يحمل ثلاث ذرات هيدروجين ويرتبط بالأكسجين، والأكسجين يحمل الهيدروجين الأخير.',
+   fact:'مجموعة –OH هي ما يجعله كحولًا.'},
+  {f:'CCl₄', n:'رابع كلوريد الكربون',   atoms:['C','Cl','Cl','Cl','Cl'],       bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]],
+   hint:'الكربون في المركز وأربع ذرات كلور حوله، وعلى كل كلور ثلاثة أزواج حرة.',
+   fact:'يحمل كل كلور ثلاثة أزواج حرة، فيبلغ مجموع الأزواج الحرة اثني عشر زوجًا.'},
+  {f:'PCl₃', n:'ثلاثي كلوريد الفسفور',  atoms:['P','Cl','Cl','Cl'],            bonds:[[0,1,1],[0,2,1],[0,3,1]],
+   hint:'الفسفور في المركز يرتبط بثلاث ذرات كلور ويبقى له زوج حر واحد، مثل النيتروجين في الأمونيا.',
+   fact:'الفسفور يقع تحت النيتروجين في الجدول الدوري، فتتشابه تراكيبهما.'}
+];
+
+/* ============ أدوات عامة ============ */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+let starsMap = store.get('lewis_stars',{});
+let muted = store.get('lewis_muted',false);
+let showCount = store.get('lewis_count',true);
+const fm = f => '<bdi dir="ltr">'+f+'</bdi>';
+const stars = n => '★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i>';
+
+/* ============ الصوت ============ */
+let ac = null;
+function tone(f,d=.12,type='sine',delay=0,vol=.06){
+  if(muted) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const t = ac.currentTime+delay, o = ac.createOscillator(), g = ac.createGain();
+    o.type=type; o.frequency.value=f;
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+d+.02);
+  }catch(e){}
+}
+const sfx = {
+  tick:()=>tone(660,.07,'triangle'),
+  drop:()=>tone(420,.1,'sine'),
+  bad:()=>{tone(180,.18,'sawtooth',0,.04);tone(140,.22,'sawtooth',.12,.04);},
+  win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.28,'triangle',i*.12,.07))
+};
+
+/* ============ الشاشات ============ */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+}
+function renderHome(){
+  let sum = 0, html = '';
+  LEVELS.forEach((L,i)=>{
+    const s = starsMap[i]||0; sum += s;
+    html += `<button class="tile" data-i="${i}">
+      <span class="no">${i+1}</span>
+      <span class="fm">${fm(L.f)}</span>
+      <span class="nm">${L.n}</span>
+      <span class="st">${stars(s)}</span></button>`;
+  });
+  $('#tiles').innerHTML = html;
+  $('#total').textContent = `النجوم: ${sum} من ${LEVELS.length*3}`;
+}
+$('#tiles').addEventListener('click',e=>{
+  const t = e.target.closest('.tile'); if(t) startLevel(+t.dataset.i);
+});
+
+/* ============ حالة اللعبة ============ */
+let S = null;
+const atom = id => S.atoms.find(a=>a.id===id);
+const bkey = (a,b) => Math.min(a,b)+'-'+Math.max(a,b);
+const target = a => a.el==='H'?2:8;
+function bsum(id){
+  let n=0; for(const k in S.bonds){ const b=S.bonds[k]; if(b.a===id||b.b===id) n+=b.o; } return n;
+}
+function bsize(){ const r=$('#board').getBoundingClientRect(); return {w:Math.max(r.width,100),h:Math.max(r.height,100)}; }
+
+function startLevel(i){
+  show('game');
+  const L = LEVELS[i];
+  S = {i, L, atoms:[], bonds:{}, lone:{}, tray:{}, tool:'move', sel:null, drag:null, dragBond:false,
+       preview:null, wrong:0, hints:0, nid:1, done:false, flash:new Set()};
+  L.atoms.forEach(e=>S.tray[e]=(S.tray[e]||0)+1);
+  $('#gtitle').textContent = `المستوى ${i+1}`;
+  $('#gform').innerHTML = fm(L.f);
+  $('#gname').textContent = L.n;
+  const cnt = {}; L.atoms.forEach(e=>cnt[e]=(cnt[e]||0)+1);
+  const total = L.atoms.reduce((s,e)=>s+EL[e].v,0);
+  $('#gsum').textContent = Object.keys(cnt).map(e=>`${cnt[e]}×${EL[e].v}`).join(' + ')+' = '+total;
+  $('#hintbox').classList.remove('on');
+  setTool('move');
+  msg('اسحب الذرات إلى اللوحة، ثم صِل بينها بالروابط وأضف الأزواج الحرة.','');
+  $('#win').classList.remove('on');
+  requestAnimationFrame(refresh);
+}
+function resetBoard(){
+  S.atoms=[]; S.bonds={}; S.lone={}; S.tray={}; S.sel=null; S.preview=null; S.flash=new Set();
+  S.L.atoms.forEach(e=>S.tray[e]=(S.tray[e]||0)+1);
+  msg('بدأتَ من جديد.','');
+  refresh();
+}
+function msg(t,k){ const m=$('#msg'); m.textContent=t; m.className=k||''; }
+
+/* ============ الأدوات ============ */
+function setTool(t){
+  S.tool=t; S.sel=null; S.preview=null;
+  document.querySelectorAll('#tools button').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));
+  $('#board').setAttribute('class','tool-'+t);
+  if(S) renderBoard();
+}
+$('#tools').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&S) setTool(b.dataset.tool); });
+
+/* ============ إضافة الذرات ============ */
+function addAtom(el,x,y){
+  const {w,h}=bsize(), r=EL[el].r;
+  x=Math.min(Math.max(x,r+8),w-r-8); y=Math.min(Math.max(y,r+8),h-r-8);
+  const id=S.nid++;
+  S.atoms.push({id,el,x,y}); S.lone[id]=0; S.tray[el]--; sfx.drop();
+}
+function autoPlace(el){
+  const {w,h}=bsize(); let x=w/2,y=h/2;
+  for(let k=0;k<60;k++){
+    x=90+Math.random()*(w-180); y=90+Math.random()*(h-180);
+    if(S.atoms.every(a=>Math.hypot(a.x-x,a.y-y)>95)) break;
+  }
+  addAtom(el,x,y);
+}
+function removeAtom(id){
+  const a=atom(id); if(!a) return;
+  S.atoms=S.atoms.filter(x=>x.id!==id);
+  for(const k in S.bonds){ const b=S.bonds[k]; if(b.a===id||b.b===id) delete S.bonds[k]; }
+  delete S.lone[id]; S.tray[a.el]++; S.sel=null; sfx.tick();
+}
+function connect(a,b){
+  const k=bkey(a,b), cur=S.bonds[k];
+  if(!cur) S.bonds[k]={a:Math.min(a,b),b:Math.max(a,b),o:1};
+  else { cur.o++; if(cur.o>3) delete S.bonds[k]; }
+  sfx.tick();
+}
+
+/* سحب الذرات من الصندوق */
+$('#tray').addEventListener('pointerdown',e=>{
+  const c=e.target.closest('.chip'); if(!c||!S||S.done) return;
+  const el=c.dataset.el; if(S.tray[el]<=0) return;
+  e.preventDefault();
+  const g=document.createElement('div'); g.className='ghost';
+  g.style.background=`radial-gradient(circle at 35% 30%,${EL[el].c1},${EL[el].c2})`;
+  g.style.color=EL[el].t; g.textContent=el; document.body.appendChild(g);
+  const sx=e.clientX, sy=e.clientY; let moved=false;
+  const mv=ev=>{ if(Math.hypot(ev.clientX-sx,ev.clientY-sy)>6) moved=true; g.style.left=ev.clientX+'px'; g.style.top=ev.clientY+'px'; };
+  const up=ev=>{
+    window.removeEventListener('pointermove',mv); window.removeEventListener('pointerup',up); window.removeEventListener('pointercancel',up);
+    g.remove();
+    const r=$('#board').getBoundingClientRect();
+    const inside=ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom;
+    if(moved&&inside) addAtom(el,ev.clientX-r.left,ev.clientY-r.top);
+    else if(!moved) autoPlace(el);
+    refresh();
+  };
+  mv(e);
+  window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up); window.addEventListener('pointercancel',up);
+});
+$('#tray').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ') return;
+  const c=e.target.closest('.chip'); if(!c||!S||S.done) return;
+  e.preventDefault(); if(S.tray[c.dataset.el]>0){ autoPlace(c.dataset.el); refresh(); }
+});
+
+/* ============ التفاعل مع اللوحة ============ */
+const svg = $('#board');
+const pt = e => { const r=svg.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; };
+
+svg.addEventListener('pointerdown',e=>{
+  if(!S||S.done) return;
+  const p=pt(e), t=e.target;
+  const aEl=t.closest('[data-atom]'), pEl=t.closest('[data-pair]'), bEl=t.closest('[data-bond]');
+  const tool=S.tool;
+  if(tool==='move'){
+    if(aEl){ const id=+aEl.dataset.atom, a=atom(id); S.drag={id,dx:a.x-p.x,dy:a.y-p.y}; svg.setPointerCapture(e.pointerId); }
+  }else if(tool==='bond'){
+    if(aEl){
+      const id=+aEl.dataset.atom;
+      if(S.sel!=null&&S.sel!==id){ connect(S.sel,id); S.sel=null; S.preview=null; }
+      else { S.sel=id; S.preview=p; S.dragBond=true; svg.setPointerCapture(e.pointerId); }
+    }else if(bEl){ connect(...bEl.dataset.bond.split('-').map(Number)); }
+    else S.sel=null;
+  }else if(tool==='pair'){
+    if(pEl){ const id=+pEl.dataset.pair; if(S.lone[id]>0){ S.lone[id]--; sfx.tick(); } }
+    else if(aEl){ const id=+aEl.dataset.atom; if(S.lone[id]<4){ S.lone[id]++; sfx.tick(); } }
+  }else if(tool==='delete'){
+    if(aEl) removeAtom(+aEl.dataset.atom);
+    else if(bEl){ delete S.bonds[bEl.dataset.bond]; sfx.tick(); }
+  }
+  refresh();
+});
+svg.addEventListener('pointermove',e=>{
+  if(!S) return;
+  if(S.drag){
+    const p=pt(e), a=atom(S.drag.id), {w,h}=bsize(), r=EL[a.el].r;
+    a.x=Math.min(Math.max(p.x+S.drag.dx,r+8),w-r-8);
+    a.y=Math.min(Math.max(p.y+S.drag.dy,r+8),h-r-8);
+    renderBoard();
+  }else if(S.dragBond){ S.preview=pt(e); renderBoard(); }
+});
+function endPointer(e){
+  if(!S) return;
+  if(S.drag) S.drag=null;
+  if(S.dragBond){
+    S.dragBond=false;
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    const aEl=el&&el.closest?el.closest('[data-atom]'):null;
+    if(aEl&&+aEl.dataset.atom!==S.sel){ connect(S.sel,+aEl.dataset.atom); S.sel=null; }
+    S.preview=null;
+  }
+  refresh();
+}
+svg.addEventListener('pointerup',endPointer);
+svg.addEventListener('pointercancel',endPointer);
+
+/* ============ الرسم ============ */
+function angDist(a,b){ let d=Math.abs(a-b)%(2*Math.PI); return d>Math.PI?2*Math.PI-d:d; }
+function pairAngles(a){
+  const n=S.lone[a.id]; if(!n) return [];
+  const taken=[];
+  for(const k in S.bonds){
+    const b=S.bonds[k]; if(b.a!==a.id&&b.b!==a.id) continue;
+    const o=atom(b.a===a.id?b.b:b.a); taken.push(Math.atan2(o.y-a.y,o.x-a.x));
+  }
+  const res=[];
+  for(let i=0;i<n;i++){
+    let best=-Math.PI/2, bd=-1;
+    for(let c=0;c<24;c++){
+      const ang=-Math.PI/2+c*Math.PI/12;
+      let m=Math.PI; taken.concat(res).forEach(t=>{ m=Math.min(m,angDist(ang,t)); });
+      if(m>bd+1e-6){ bd=m; best=ang; }
+    }
+    res.push(best);
+  }
+  return res;
+}
+function renderBoard(){
+  if(!S) return;
+  const {w,h}=bsize();
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  let s='<defs>';
+  for(const k in EL) s+=`<radialGradient id="g${k}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="${EL[k].c1}"/><stop offset="1" stop-color="${EL[k].c2}"/></radialGradient>`;
+  s+='<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+  if(!S.atoms.length) s+=`<text class="empty" x="${w/2}" y="${h/2}">اسحب الذرات من الصندوق وأفلتها هنا</text>`;
+
+  for(const k in S.bonds){
+    const b=S.bonds[k], A=atom(b.a), B=atom(b.b);
+    const dx=B.x-A.x, dy=B.y-A.y, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
+    const offs=b.o===1?[0]:b.o===2?[-5.5,5.5]:[-10,0,10];
+    offs.forEach(o=>{ s+=`<line class="bond" x1="${A.x+nx*o}" y1="${A.y+ny*o}" x2="${B.x+nx*o}" y2="${B.y+ny*o}"/>`; });
+    s+=`<line class="bondhit" data-bond="${k}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`;
+  }
+  if(S.sel!=null&&S.preview){
+    const A=atom(S.sel); if(A) s+=`<line class="preview" x1="${A.x}" y1="${A.y}" x2="${S.preview.x}" y2="${S.preview.y}"/>`;
+  }
+  S.atoms.forEach(a=>{
+    const R=EL[a.el].r;
+    pairAngles(a).forEach(ang=>{
+      const cx=a.x+Math.cos(ang)*(R+14), cy=a.y+Math.sin(ang)*(R+14), px=-Math.sin(ang)*5.5, py=Math.cos(ang)*5.5;
+      s+=`<g filter="url(#glow)"><circle class="pdot" cx="${cx+px}" cy="${cy+py}" r="3.8"/><circle class="pdot" cx="${cx-px}" cy="${cy-py}" r="3.8"/></g>`;
+      s+=`<circle class="pairhit" data-pair="${a.id}" cx="${cx}" cy="${cy}" r="14"/>`;
+    });
+  });
+  S.atoms.forEach(a=>{
+    const R=EL[a.el].r, e=2*bsum(a.id)+2*S.lone[a.id], T=target(a);
+    s+=`<g class="atom${S.sel===a.id?' sel':''}${S.flash.has(a.id)?' bad':''}" data-atom="${a.id}" transform="translate(${a.x} ${a.y})">
+      <circle class="ring" r="${R+8}"/>
+      <circle class="body" r="${R}" fill="url(#g${a.el})"/>
+      <text class="sym" fill="${EL[a.el].t}" font-size="${Math.round(R*.85)}" y="1">${a.el}</text>`;
+    if(showCount){
+      const col=e===T?'#4fe0b0':e>T?'#ff6b6b':'#ffc857';
+      s+=`<g transform="translate(${R*.8} ${-R*.8})"><circle r="11" fill="${col}"/><text class="bt">${e}</text></g>`;
+    }
+    s+='</g>';
+  });
+  svg.innerHTML=s;
+}
+function renderPanel(){
+  const total=S.L.atoms.reduce((s,e)=>s+EL[e].v,0);
+  const used=2*Object.values(S.bonds).reduce((s,b)=>s+b.o,0)+2*Object.values(S.lone).reduce((s,n)=>s+n,0);
+  $('#mtxt').textContent=`${used} / ${total}`;
+  const m=$('#meter'); m.className='meter'+(used===total?' ok':used>total?' over':'');
+  m.firstElementChild.style.width=Math.min(100,used/total*100)+'%';
+  const els=[...new Set(S.L.atoms)];
+  $('#tray').innerHTML=els.map(e=>{
+    const c=S.tray[e];
+    return `<button class="chip${c?'':' off'}" data-el="${e}" aria-label="${EL[e].name}">
+      <i class="dot" style="background:radial-gradient(circle at 35% 30%,${EL[e].c1},${EL[e].c2});color:${EL[e].t}">${e}</i>
+      <span>${EL[e].name}</span><em>×${c}</em></button>`;
+  }).join('');
+}
+function refresh(){ if(!S) return; renderBoard(); renderPanel(); }
+
+/* ============ التحقق ============ */
+function isoMatch(){
+  const A=S.atoms, n=A.length, tl=S.L.atoms;
+  const tm=Array.from({length:n},()=>new Array(n).fill(0));
+  S.L.bonds.forEach(([i,j,o])=>{ tm[i][j]=o; tm[j][i]=o; });
+  const ord=(i,j)=>{ const b=S.bonds[bkey(A[i].id,A[j].id)]; return b?b.o:0; };
+  const map=new Array(n).fill(-1), used=new Array(n).fill(false);
+  (function(){})();
+  function bt(i){
+    if(i===n) return true;
+    for(let j=0;j<n;j++){
+      if(used[j]||A[i].el!==tl[j]) continue;
+      let ok=true;
+      for(let k=0;k<i;k++){ if(ord(i,k)!==tm[j][map[k]]){ ok=false; break; } }
+      if(!ok) continue;
+      used[j]=true; map[i]=j;
+      if(bt(i+1)) return true;
+      used[j]=false; map[i]=-1;
+    }
+    return false;
+  }
+  return bt(0);
+}
+function connected(){
+  if(!S.atoms.length) return false;
+  const seen=new Set([S.atoms[0].id]), q=[S.atoms[0].id];
+  while(q.length){
+    const x=q.pop();
+    for(const k in S.bonds){
+      const b=S.bonds[k]; let y=null;
+      if(b.a===x) y=b.b; else if(b.b===x) y=b.a;
+      if(y!=null&&!seen.has(y)){ seen.add(y); q.push(y); }
+    }
+  }
+  return seen.size===S.atoms.length;
+}
+const rob = n => n===0?'لا روابط':n===1?'رابطة واحدة':n===2?'رابطتين':n+' روابط';
+
+function check(){
+  if(!S||S.done) return;
+  const left=Object.values(S.tray).reduce((s,n)=>s+n,0);
+  if(left>0){ msg(`ما زال في الصندوق ${left} ${left>10?'ذرة':'ذرات'} — ضعها كلها على اللوحة.`,'warn'); sfx.bad(); return; }
+  if(!connected()){ S.wrong++; msg('بعض الذرات منفصلة عن الجزيء. صِلها بالروابط.','bad'); sfx.bad(); return; }
+  if(!isoMatch()){
+    S.wrong++;
+    const bad=S.atoms.find(a=>bsum(a.id)!==EL[a.el].cap);
+    if(bad){ S.flash=new Set([bad.id]); msg(`ذرة ${EL[bad.el].name} تكوّن عادةً ${rob(EL[bad.el].cap)}، وعندك ${rob(bsum(bad.id))}.`,'bad'); }
+    else msg('بناء الجزيء غير صحيح — راجع أي ذرة ترتبط بأي ذرة، ونوع كل رابطة.','bad');
+    sfx.bad(); clearFlash(); refresh(); return;
+  }
+  const off=S.atoms.filter(a=>2*bsum(a.id)+2*S.lone[a.id]!==target(a));
+  if(off.length){
+    S.wrong++; S.flash=new Set(off.map(a=>a.id));
+    const a=off[0], e=2*bsum(a.id)+2*S.lone[a.id];
+    msg(e<target(a)
+      ?`ذرة ${EL[a.el].name} ما زالت ناقصة: حولها ${e} إلكترونات وتحتاج ${target(a)}.`
+      :`ذرة ${EL[a.el].name} تجاوزت الحد: حولها ${e} إلكترونات والمطلوب ${target(a)}.`,'bad');
+    sfx.bad(); clearFlash(); refresh(); return;
+  }
+  win();
+}
+function clearFlash(){ setTimeout(()=>{ if(S){ S.flash=new Set(); renderBoard(); } },1800); }
+
+/* ============ الفوز ============ */
+function win(){
+  S.done=true;
+  const st = S.wrong===0&&S.hints===0 ? 3 : (S.wrong<=2&&S.hints<=1 ? 2 : 1);
+  if(st>(starsMap[S.i]||0)){ starsMap[S.i]=st; store.set('lewis_stars',starsMap); }
+  msg('تركيب لويس صحيح!','ok'); sfx.win();
+  $('#winTxt').innerHTML=`أتممتَ تركيب ${S.L.n} ${fm(S.L.f)}`;
+  $('#winStars').innerHTML=stars(st);
+  $('#winFact').textContent=S.L.fact;
+  $('#winNext').style.display = S.i+1<LEVELS.length ? '' : 'none';
+  $('#win').classList.add('on');
+  confetti();
+}
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const cv=$('#confetti'), cx=cv.getContext('2d');
+  cv.width=innerWidth; cv.height=innerHeight;
+  const cols=['#ffc857','#4fe0b0','#ff6b6b','#9cc0ff','#ffffff','#ff9a3d'];
+  const P=Array.from({length:140},()=>({x:Math.random()*cv.width,y:-Math.random()*cv.height*.6,r:3+Math.random()*4,
+    vx:(Math.random()-.5)*2,vy:2+Math.random()*3,c:cols[Math.random()*cols.length|0]}));
+  let t=0;
+  (function f(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    P.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; cx.fillStyle=p.c; cx.beginPath(); cx.arc(p.x,p.y,p.r,0,7); cx.fill(); });
+    if(++t<220 && $('#win').classList.contains('on')) requestAnimationFrame(f); else cx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+/* ============ الأزرار ============ */
+$('#checkBtn').onclick=check;
+$('#resetBtn').onclick=()=>{ if(S&&!S.done) resetBoard(); };
+$('#hintBtn').onclick=()=>{
+  if(!S||S.done) return;
+  if(!$('#hintbox').classList.contains('on')) S.hints++;
+  const hb=$('#hintbox'); hb.textContent=S.L.hint; hb.classList.add('on');
+};
+$('#back').onclick=()=>{ S=null; renderHome(); show('home'); };
+$('#winMenu').onclick=()=>{ $('#win').classList.remove('on'); S=null; renderHome(); show('home'); };
+$('#winNext').onclick=()=>{ startLevel(S.i+1); };
+function syncToggles(){
+  $('#sndBtn').classList.toggle('on',!muted); $('#sndBtn').textContent=muted?'الصوت: مغلق':'الصوت';
+  $('#cntBtn').classList.toggle('on',showCount);
+}
+$('#sndBtn').onclick=()=>{ muted=!muted; store.set('lewis_muted',muted); syncToggles(); };
+$('#cntBtn').onclick=()=>{ showCount=!showCount; store.set('lewis_count',showCount); syncToggles(); refresh(); };
+document.addEventListener('keydown',e=>{
+  if(!S||S.done||!$('#game').classList.contains('on')) return;
+  const map={'1':'move','2':'bond','3':'pair','4':'delete'};
+  if(map[e.key]) setTool(map[e.key]);
+  else if(e.key==='Enter'&&!e.target.closest('.chip')) check();
+});
+addEventListener('resize',()=>{
+  if(!S) return;
+  const {w,h}=bsize();
+  S.atoms.forEach(a=>{ const r=EL[a.el].r; a.x=Math.min(Math.max(a.x,r+8),w-r-8); a.y=Math.min(Math.max(a.y,r+8),h-r-8); });
+  refresh();
+});
+
+syncToggles();
+renderHome();
+</script>
+</body>
+</html>
